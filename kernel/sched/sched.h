@@ -1699,7 +1699,6 @@ static inline void inc_nr_running(struct rq *rq)
 	rq->nr_running_integral = do_nr_running_integral(rq);
 	rq->nr_last_stamp = rq->clock_task;
 	rq->nr_running++;
-	write_seqcount_end(&rq->ave_seqcnt);
 
 #ifdef CONFIG_NO_HZ_FULL
 	if (rq->nr_running == 2) {
