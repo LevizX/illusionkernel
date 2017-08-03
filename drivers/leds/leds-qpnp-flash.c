@@ -1767,6 +1767,7 @@ static void qpnp_flash_led_brightness_set(struct led_classdev *led_cdev,
 				flash_node->prgm_current;
 
 			return;
+
 		} else if (flash_node->id == FLASH_LED_SWITCH) {
 			if (!value) {
 				flash_node->prgm_current = 0;
