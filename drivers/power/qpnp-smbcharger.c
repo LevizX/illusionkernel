@@ -3915,10 +3915,10 @@ static int smbchg_register_chg_led(struct smbchg_chip *chip)
 	return rc;
 }
 
-static int vf_adjust_low_threshold = 5;
+static int vf_adjust_low_threshold = 55;
 module_param(vf_adjust_low_threshold, int, 0644);
 
-static int vf_adjust_high_threshold = 7;
+static int vf_adjust_high_threshold = 99;
 module_param(vf_adjust_high_threshold, int, 0644);
 
 static int vf_adjust_n_samples = 10;
