@@ -239,10 +239,11 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-HOSTCC       = ccache gcc
-HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O2
+O3_OPTS := -funswitch-loops -fpredictive-commoning -fgcse-after-reload -ftree-loop-vectorize -ftree-loop-distribution -ftree-loop-distribute-patterns -ftree-slp-vectorize -fvect-cost-model -ftree-partial-pre -fpeel-loops
+HOSTCC       = $(CCACHE) gcc
+HOSTCXX      = $(CCACHE) g++
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 $(O3_OPTS) -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O2 $(O3_OPTS)
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -374,17 +375,23 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
+		   -fno-asynchronous-unwind-tables \
 		   -fno-delete-null-pointer-checks \
-		   -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53 \
+		   -std=gnu89 \
+		   -mfix-cortex-a53-843419 \
+		   -mcpu=cortex-a72.cortex-a53+crc+crypto \
 		   -Wno-deprecated-declarations \
 		   -Wno-misleading-indentation \
-		   -Wno-unused-const-variable \
 		   -Wno-shift-overflow \
 		   -Wno-bool-compare \
-		   -Wno-discarded-array-qualifiers -std=gnu89 \
+		   -Wno-memset-transposed-args \
+		   -Wno-discarded-array-qualifiers \
 		   -Wno-tautological-compare -Wno-array-bounds \
 		   -Wno-duplicate-decl-specifier \
 		   -Wno-memset-elt-size -Wno-switch-unreachable \
+		   -Wno-format-truncation -Wno-format-overflow \
+		   -Wno-int-in-bool-context -Wno-bool-operation \
+		   -Wno-nonnull
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
@@ -582,10 +589,48 @@ endif # $(dot-config)
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
+# Kill all maybe-uninitialized warnings
+KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,)
+
+# Needed to unbreak GCC 7.x and above
+KBUILD_CFLAGS   += $(call cc-option,-fno-store-merging,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-code-hoisting,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-fp-int-builtin-inexact,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-ipa-bit-cp,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-ipa-icf-variables,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-ipa-vrp,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-printf-return-value,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-shrink-wrap-separate,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-peel-loops,)
+KBUILD_CFLAGS   += $(call cc-option,-fno-split-loops,)
+
+# Disable all GCC 6.x+ buggy detection warnings
+KBUILD_CFLAGS   += $(call cc-disable-warning,misleading-indentation,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,incompatible-pointer-types,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,unused-const-variable,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,memset-elt-size,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,duplicate-decl-specifier,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,shift-overflow,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,discarded-array-qualifiers,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,switch-unreachable,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,int-in-bool-context,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,array-bounds,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,bool-operation,)
+KBUILD_CFLAGS   += $(call cc-disable-warning,format-overflow,)
+KBUILD_CFLAGS	+= $(call cc-disable-warning,frame-address,)
+KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= $(call cc-disable-warning,packed-not-aligned,)
+
+# Kill format truncation warnings
+KBUILD_CFLAGS   += $(call cc-disable-warning,format-truncation,)
+
+# Tell gcc to never replace conditional load with a non-conditional one
+KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
+
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-KBUILD_CFLAGS	+= -O2
+KBUILD_CFLAGS	+= -O2 $(O3_OPTS)
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
