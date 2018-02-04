@@ -4,7 +4,7 @@
     echo By MrDarkness
     echo Please Sit Back And Chill...
     export KERNELDIR=`readlink -f .`
-    export CROSS_COMPILE=/home/$USER/aarch64-linux-gnu/bin/aarch64-linux-gnu-   
+    export CROSS_COMPILE=/home/$USER/gcc8-memes-precompiled/bin/aarch64-raphielscape-elf-   
     export ARCH=arm64
     make illusion_defconfig
     make -j38 | tee $KERNELDIR/built/kernel_output.txt
