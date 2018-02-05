@@ -217,23 +217,6 @@ config CPU_FREQ_GOV_INTERACTIVE
 
 	  If in doubt, say N.
 
-<<<<<<< HEAD
-=======
-config CPU_FREQ_GOV_CHILL
-	tristate "'chill' cpufreq governor"
-	depends on CPU_FREQ
-	select CPU_FREQ_GOV_COMMON
-	default y
-	help
-	  'chill' - similar to 'conservative', but optimized for devices
-	  that go into suspended or display off states often.
-
-config CPU_FREQ_GOV_BIOSHOCK
-	tristate "'bioshock' cpufreq bioshock"
-	depends on CPU_FREQ
-	help
-	  'bioshock' - More aggressive version of conservative
-
 config CPU_FREQ_GOV_ELEMENTALX
 	tristate "'elementalx' cpufreq policy governor"
 	select CPU_FREQ_TABLE
@@ -247,7 +230,6 @@ config CPU_FREQ_GOV_ELEMENTALX
 
 	  If in doubt, say N.
 
->>>>>>> 8b97102... cpufreq: implement elementalx governor
 config CPU_FREQ_GOV_CONSERVATIVE
 	tristate "'conservative' cpufreq governor"
 	depends on CPU_FREQ
